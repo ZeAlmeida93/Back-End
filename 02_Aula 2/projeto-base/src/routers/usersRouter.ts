@@ -9,9 +9,9 @@ let users: IUser[] = JSON.parse(readFileSync('./src/data/users.json', 'utf-8'));
 
 // // Get all users
 router.get('/users', (req: Request, res: Response) => {
-	console.log('Request Method', req.method);
-	console.log('Request URL', req.originalUrl);
-	console.log('Query Parameters', req.query);
+	// console.log('Request Method', req.method);
+	// console.log('Request URL', req.originalUrl);
+	// console.log('Query Parameters', req.query);
 
 	if (users.length === 0) {
 		res.statusMessage = 'No users found';
