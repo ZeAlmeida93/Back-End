@@ -21,17 +21,26 @@ for (let row = range.s.r; row <= range.e.r; row++) {
 console.log('First Column Values:', firstColumnValues);
 
 // Apply the exchange rate
-const exchangeRateDKK = 0.134;
-const newValues = firstColumnValues.map(value => value * exchangeRateDKK);
+const exchangeRateDKK = 7.46;
+const exchangeRateSEK = 11.55;
+const newValuesDKK = firstColumnValues.map(value => value * exchangeRateDKK);
+const newValuesSEK = firstColumnValues.map(value => value * exchangeRateSEK);
 
-console.log('New Values:', newValues);
+console.log('New Values:', newValuesDKK , newValuesSEK);
 
 // Add new values to the worksheet as a new column
-for (let row = 0; row < newValues.length; row++) {
+for (let row = 0; row < newValuesDKK.length; row++) {
     const cellAddress = { c: 0, r: row };  // first column
     const cellRef = xlsx.utils.encode_cell(cellAddress);
-    worksheet[cellRef] = { v: newValues[row] };
+    worksheet[cellRef] = { v: newValuesDKK[row] };
+}
+
+for (let row = 1; row < newValuesSEK.length; row++) {
+    const cellAddress = { c: 2, r: row };  // Second
+    const cellRef = xlsx.utils.encode_cell(cellAddress);
+    worksheet[cellRef] = { v: newValuesSEK[row] };
 }
 
 // Write the new workbook to a file
-xlsx.writeFile(workbook, 'output/excell-euro-new.xlsx');
+xlsx.writeFile(workbook, 'output/dkk.xlsx');
+xlsx.writeFile(workbook, 'output/sek.xlsx');
