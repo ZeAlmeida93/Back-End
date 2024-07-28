@@ -10,7 +10,7 @@ router.get('/users', UserController.getAll);
 router.get('/users/:id', UserController.getOne);
 
 // Create a new user
-router.post('/users', UserController.create);
+router.post('/users', UserController.register);
 
 // Update an existing user
 router.put('/users/:id', UserController.update);
