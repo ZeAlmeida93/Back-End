@@ -108,6 +108,13 @@ class ProductService {
     }
     delete = async () => {
         try {
+            const products: IProduct[] | undefined = this.readProductsJson();
+
+            if (!products) {
+
+                throw new Error ('Failed to read products');
+
+            } 
 
         } catch (error) {
             // console.log(error);

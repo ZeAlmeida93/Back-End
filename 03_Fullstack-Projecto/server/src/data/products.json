@@ -38,5 +38,11 @@
     "sku": "RCH45Q1A",
     "image": "https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/1.png",
     "id": "4e5ce895-ee0b-44b8-bc41-babd19ddc40d"
+  },
+  {
+    "name": "Ricardo",
+    "email": "pedro@sapo.pt",
+    "password": "KOKOROO",
+    "id": "23e0859a-f98c-4301-845b-fef552b7ede7"
   }
 ]

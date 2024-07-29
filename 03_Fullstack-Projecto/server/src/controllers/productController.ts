@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { IProduct } from '../interfaces/interfaces.js';
 import productService from '../services/productService.js';
-
+import { validationResult } from 'express-validator';
 
 class ProductController {
 
@@ -46,7 +46,12 @@ res.status(404).json({error: 'Product not found'});
   create = async (req: Request, res: Response) => { 
 
  try {
+const errors = validationResult(req);
 
+if (!errors.isEmpty())  {
+
+  res.status(400).json({erros: errors.array()})
+}
   const product: IProduct = req.body;
   const createdProduct: any = productService.create(product);
   res.status(201).json(createdProduct);
