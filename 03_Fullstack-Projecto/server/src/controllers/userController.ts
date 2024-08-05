@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { IUser } from '../interfaces/interfaces.js';
+import { IUser } from '../models/userModel.js';
 import userService from '../services/userService.js';
+import { validationResult } from 'express-validator';
 
 class UserController {
   getAll = async (req: Request, res: Response) => {
@@ -16,7 +17,7 @@ class UserController {
     try {
       const userId: string = req.params.id;
 
-      const user: IUser | undefined = userService.getUserById(userId);
+      const user: IUser | null = await userService.getUserById(userId);
 
       if (!user) {
         res.status(404).json({ error: 'User not found' });
@@ -29,6 +30,15 @@ class UserController {
   }
   register = async (req: Request, res: Response) => {
     try {
+const errors = validationResult(req);
+const avatar = req.files?.avatar;
+
+if (!errors.isEmpty()) {
+
+return res.status(422).json ({errors:errors.array()});
+
+}
+
       const userToCreate: IUser = req.body;
       const createdUser: any = await userService.register(userToCreate);
       res.status(201).json(createdUser);
@@ -36,11 +46,32 @@ class UserController {
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
+
+  login = async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() })
+      }
+
+      const { email, password } = req.body;
+
+      const foundUser: any = await userService.login(email, password);
+      if (foundUser === null) {
+        return res.status(404).json({ error: 'Invalid email or password' })
+      }
+      res.json(foundUser);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  }
+  
   update = async (req: Request, res: Response) => {
     try {
       const userId: string = req.params.id;
       const userToUpdate: IUser = req.body;
-      const updatedUser: IUser | undefined = userService.update(userId, userToUpdate);
+      const updatedUser = userService.update(userId, userToUpdate);
 
       if (!updatedUser) {
         res.status(404).json({ error: 'User not found' });
@@ -53,7 +84,7 @@ class UserController {
   delete = async (req: Request, res: Response) => {
     try {
       const userId: string = req.params.id;
-      const deletedUser: IUser | undefined = userService.delete(userId);
+      const deletedUser = userService.delete(userId);
 
       if (!deletedUser) {
         res.status(404).json({ error: 'User not found' });

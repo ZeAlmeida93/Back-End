@@ -1,42 +1,24 @@
-import { IUser } from '../interfaces/interfaces.js';
-import JsonFileReader from '../utils/jsonFileReader.js';
+import { IUser } from '../models/userModel.js';
 import { v4 as uuidv4 } from 'uuid';
+import UserModel from '../models/userModel.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-
-const usersJsonPath: string = './src/data/users.json';
+dotenv.config();
 
 class UserService {
-  private readUsersJson(): IUser[] | undefined {
+  getAll = async (): Promise<IUser[]> => {
     try {
-      const data = JsonFileReader.read(usersJsonPath);
-      return data;
-    } catch (error) {
-      throw new Error('Failed to read users from file');
-    }
-  }
-
-  private writeUsersJson(users: IUser[]): void {
-    try {
-      JsonFileReader.write(usersJsonPath, users);
-    } catch (error) {
-      throw new Error('Failed to write users to file');
-    }
-  }
-
-  getAll = (): IUser[] | undefined => {
-    try {
-      return this.readUsersJson();
+      return await UserModel.find();
     } catch (error) {
       throw new Error('Failed to get all users');
     }
   }
 
-  getUserById = (userId: string): IUser | undefined => {
+  getUserById = async (userId: string): Promise<IUser | null> => {
     try {
-      const users: IUser[] | undefined = this.readUsersJson();
-
-      const foundUser = users?.find(user => user.id === userId);
+      const foundUser: IUser | null = await UserModel.findById(userId);
 
       return foundUser;
     } catch (error) {
@@ -44,71 +26,77 @@ class UserService {
     }
   }
 
-  register = async (newUser: IUser): Promise  <IUser> => {
-
+  register = async (newUser: IUser): Promise<IUser> => {
     try {
-      const users: IUser[] | undefined = this.readUsersJson();
-      if (!users) {
-        throw new Error('Failed to read users');
+      const foundUser = await UserModel.findOne({ email: newUser.email });
+
+      if (foundUser) {
+        throw new Error('user already exists');
+
       }
+      const hashedPassword = await bcrypt.hash(newUser.password, 10 /* este valor numerico define o nr de vezes que vai encriptar*/);
 
-      newUser.id = uuidv4();
-      newUser.password = await bcrypt.hash(newUser.password, 10)
-
-      users?.push(newUser);
-
-      this.writeUsersJson(users);
-      return newUser;
+      newUser.password = hashedPassword;
+      const createdUser = await UserModel.create(newUser);
+      //console.log(createdUser)
+      return createdUser;
     } catch (error) {
       throw new Error('Failed to create user');
     }
   }
 
-  update = (userId: string, user: IUser): IUser | undefined => {
+  login = async (email: string, password: string):
+
+    Promise<{ user: IUser, accessToken: string } | null> => {
     try {
-      const users: IUser[] | undefined = this.readUsersJson();
+      const foundUser = await UserModel.findOne({ email: email });
 
-      if (!users) {
-        throw new Error('Failed to read users');
+      if (!foundUser) {
+        return null;
+
       }
 
-      const userIndex: number = users.findIndex(user => user.id === userId);
+      if (!await bcrypt.compare(password, foundUser.password)) {
+        return null
 
-      if (userIndex === -1) {
-        return undefined;
       }
-      const userToUpdateWithId = { ...users[userIndex], ...user } // Merge user with id
 
-      users[userIndex] = userToUpdateWithId; // Update user
+      let token = "";
 
-      this.writeUsersJson(users);
-      return userToUpdateWithId;
+
+      if (process.env.SECRET_KEY) {
+
+        token = jwt.sign({
+
+          id: foundUser.id,
+          email: foundUser.email,
+          role: foundUser.role
+
+        }, process.env.SECRET_KEY);
+      } else {
+
+        throw new Error('cannot get secret key');
+      }
+
+
+      return { user: foundUser, accessToken: token }
+    } catch (error) {
+      throw new Error('No user Found');
+    }
+  }
+
+  update = async (userId: string, user: IUser): Promise<IUser | null> => {
+    try {
+      const updatedUser = await UserModel.findByIdAndUpdate(userId, user, { new: true });
+
+      return updatedUser;
     } catch (error) {
       throw new Error('Failed to update user');
     }
   }
-  delete = (userId: string): IUser | undefined => {
+  delete = async (userId: string): Promise<IUser | null> => {
     try {
-      const users: IUser[] | undefined = this.readUsersJson();
-
-      if (!users) {
-        throw new Error('Failed to read users');
-      }
-
-      const userIndex: number = users.findIndex(user => user.id === userId);
-
-      if (userIndex === -1) {
-        return undefined;
-      }
-      const arr = users.splice(userIndex, 1);
-
-      console.log(arr);
-
-      const deletedUser = arr[0]; // Delete user
-      this.writeUsersJson(users);
-      console.log(deletedUser);
-
-
+      const deletedUser = await UserModel.findByIdAndDelete(userId); // Delete user
       return deletedUser;
     } catch (error) {
       throw new Error('Failed to delete user');

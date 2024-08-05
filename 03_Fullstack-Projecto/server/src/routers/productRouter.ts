@@ -7,13 +7,18 @@ const router: Router = Router();
 
 
 const validateProduct = [
-
-check ("name").notEmpty().withMessage("Product Name is Required"),
-check ("description").notEmpty().withMessage("Product Description is Required"),
-check ("Price").isNumeric().notEmpty().withMessage("Product Price is Required"),
-check ("ean").optional().isLength({min:13, max:13}).withMessage("EAN must 13 digits long")
-
-];
+    check("name").notEmpty().withMessage("Product name is required"),
+    check("description").notEmpty().withMessage("Product description is required"),
+    check("price").isNumeric().withMessage("Product must be an number"),
+    check("ean").optional().isLength({ min:13, max: 13 }).withMessage("EAN must be 13 digits long"),
+    check("image").custom((value, { req }) => {
+      if (!req.files || !req.files.image) {
+        throw new Error('Image is required')
+      }
+  
+      return true;
+    })
+  ];
 
 // Get all products
 router.get('/products', ProductController.getAll);

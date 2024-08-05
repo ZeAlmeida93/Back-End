@@ -4,6 +4,8 @@ import usersRouter from './routers/userRouter.js';
 import productsRouter from './routers/productRouter.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import fileUpload from 'express-fileupload';
+
 
 const app: Express = express();
 
@@ -11,9 +13,14 @@ dotenv.config();
 // console.log(process.env.MONGO_URI);
 
 app.use(express.json());
+app.use(fileUpload());
 app.use(cors());
+
 app.use(usersRouter);
 app.use(productsRouter);
+
+app.use(express.static("static"));
+
 
 const PORT = process.env.PORT;
 
@@ -21,7 +28,7 @@ const PORT = process.env.PORT;
 
 const startApp = async () => {
 	try {
-
+		mongoose.set("strictQuery" , true);
 		await mongoose.connect(process.env.MONGO_URI || "");
 		console.log("Connected to db");
 

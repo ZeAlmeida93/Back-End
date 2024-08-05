@@ -1,8 +1,10 @@
+import { IProduct } from './../interfaces/interfaces';
 
 
 import { IProduct } from '../interfaces/interfaces.js';
 import jsonFileReader from '../utils/jsonFileReader.js';
 import { v4 as uuidv4 } from 'uuid';
+import productModel from '../models/productModel.js'
 
 const productsJsonPath: string = './src/data/products.json'
 
@@ -37,84 +39,67 @@ class ProductService {
     }
     getAll = async () => {
         try {
+            return await productModel.find();
 
             return this.readProductsJson();
         } catch (error) {
             // console.log(error);
         }
     }
-    getProductbyId = (productID: string): IProduct | undefined => {
-        try {
-            const products: IProduct[] | undefined = this.readProductsJson();
 
-            const foundProduct = products?.find(product => product.id === productID);
+    getProductById = async (productId: string): Promise<IProduct | null> => {
+        try {
+            const foundProduct: IProduct | null = await productModel.findById(productId);
 
             return foundProduct;
-
-
         } catch (error) {
-            // console.log(error);
+            throw new Error('Failed to get product by ID');
         }
     }
-    create = (newProduct: IProduct): IProduct | undefined => {
+    create = async (newProduct: IProduct): Promise<IProduct> => {
         try {
-            const products: IProduct[] | undefined = this.readProductsJson();
-            console.log(products);
-
-            if (!products) {
-
-                throw new Error('Failed to read products');
-            }
-
-            newProduct.id = uuidv4(); //gerador de IDs
-
-
-            products?.push(newProduct);
-
-            this.writeProductsJson(products);
-            return newProduct;
-
+            const createdProduct = await productModel.create(newProduct);
+            console.log(createdProduct)
+            return createdProduct;
 
 
         } catch (error) {
             throw new Error('Failed to create Products');
         }
     }
-    update = (productID: string, product: IProduct): IProduct => {
+    // update = (productID: string, product: IProduct): IProduct => {
+    //     try {
+    //         const products: IProduct[] | undefined = this.readProductsJson();
+    //         if (!products) {
+
+    //             throw new Error('Failed to read products');
+    //         }
+
+    //         const productIndex: number = products.findIndex(product => product.id === productID);
+
+    //         if (productIndex === -1) {
+
+    //             throw new Error('Product not found');
+    //         }
+
+    //         const productToUpdateWithID = { ...products[productIndex], ...product } // merge product with ID
+    //         console.log(productToUpdateWithID);
+    //         products[productIndex] = productToUpdateWithID; //update product
+
+    //         this.writeProductsJson(products);
+    //         return productToUpdateWithID;
+
+    //     } catch (error) {
+    //         throw new Error('Failed to update Product');
+    //     }
+    // }
+    delete = async (productId: string): Promise<IProduct | null> => {
         try {
-            const products: IProduct[] | undefined = this.readProductsJson();
-            if (!products) {
+            const deletedProduct = await productModel.findByIdAndDelete(productId); // Delete Product
+            // productModel.deleteOne({ _id: productId })
 
-                throw new Error ('Failed to read products');
-            }
+            return deletedProduct;
 
-            const productIndex: number = products.findIndex(product => product.id === productID);
-            
-            if (productIndex === -1) {
-
-                throw new Error ('Product not found');
-            }
-
-            const productToUpdateWithID = { ...products[productIndex], ...product} // merge product with ID
-            console.log(productToUpdateWithID); 
-            products[productIndex] = productToUpdateWithID; //update product
-
-            this.writeProductsJson(products);
-            return productToUpdateWithID;
-
-        } catch (error) {
-            throw new Error('Failed to update Product');
-        }
-    }
-    delete = async () => {
-        try {
-            const products: IProduct[] | undefined = this.readProductsJson();
-
-            if (!products) {
-
-                throw new Error ('Failed to read products');
-
-            } 
 
         } catch (error) {
             // console.log(error);
