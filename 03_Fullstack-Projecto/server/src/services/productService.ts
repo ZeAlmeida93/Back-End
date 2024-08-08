@@ -67,32 +67,32 @@ class ProductService {
             throw new Error('Failed to create Products');
         }
     }
-    // update = (productID: string, product: IProduct): IProduct => {
-    //     try {
-    //         const products: IProduct[] | undefined = this.readProductsJson();
-    //         if (!products) {
+    update = (productID: string, product: IProduct): IProduct => {
+        try {
+            const products: IProduct[] | undefined = this.readProductsJson();
+            if (!products) {
 
-    //             throw new Error('Failed to read products');
-    //         }
+                throw new Error('Failed to read products');
+            }
 
-    //         const productIndex: number = products.findIndex(product => product.id === productID);
+            const productIndex: number = products.findIndex(product => product.id === productID);
 
-    //         if (productIndex === -1) {
+            if (productIndex === -1) {
 
-    //             throw new Error('Product not found');
-    //         }
+                throw new Error('Product not found');
+            }
 
-    //         const productToUpdateWithID = { ...products[productIndex], ...product } // merge product with ID
-    //         console.log(productToUpdateWithID);
-    //         products[productIndex] = productToUpdateWithID; //update product
+            const productToUpdateWithID = { ...products[productIndex], ...product } // merge product with ID
+            console.log(productToUpdateWithID);
+            products[productIndex] = productToUpdateWithID; //update product
 
-    //         this.writeProductsJson(products);
-    //         return productToUpdateWithID;
+            this.writeProductsJson(products);
+            return productToUpdateWithID;
 
-    //     } catch (error) {
-    //         throw new Error('Failed to update Product');
-    //     }
-    // }
+        } catch (error) {
+            throw new Error('Failed to update Product');
+        }
+    }
     delete = async (productId: string): Promise<IProduct | null> => {
         try {
             const deletedProduct = await productModel.findByIdAndDelete(productId); // Delete Product

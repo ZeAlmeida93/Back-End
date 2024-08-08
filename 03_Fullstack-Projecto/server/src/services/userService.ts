@@ -4,6 +4,7 @@ import UserModel from '../models/userModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import fileService from '../utils/fileService.js';
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ class UserService {
     }
   }
 
-  register = async (newUser: IUser): Promise<IUser> => {
+  register = async (newUser: IUser, avatar:any ): Promise<IUser> => {
     try {
       const foundUser = await UserModel.findOne({ email: newUser.email });
 
@@ -34,13 +35,26 @@ class UserService {
         throw new Error('user already exists');
 
       }
-      const hashedPassword = await bcrypt.hash(newUser.password, 10 /* este valor numerico define o nr de vezes que vai encriptar*/);
+      console.log(newUser.password);
+
+      let avatarName = "default.jpg";
+
+      if (avatar) {
+
+        avatarName = fileService.save(avatar);
+
+      }
+
+      newUser.avatar = avatarName;
+
+      const hashedPassword = await bcrypt.hash(newUser.password, 10 ); /* este valor numerico define o nr de vezes que vai encriptar*/
 
       newUser.password = hashedPassword;
       const createdUser = await UserModel.create(newUser);
       //console.log(createdUser)
       return createdUser;
     } catch (error) {
+      console.log(error);
       throw new Error('Failed to create user');
     }
   }

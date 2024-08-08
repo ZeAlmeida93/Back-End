@@ -3,12 +3,12 @@ import { IProduct } from '../interfaces/interfaces.js';
 import productService from '../services/productService.js';
 import { validationResult } from 'express-validator';
 import productModel from '../models/productModel.js'
+import fileService from '../utils/fileService.js';
 
 class ProductController {
   getAll = async (req: Request, res: Response) => {
     try {
       const products: IProduct[] | undefined = await productService.getAll();
-
       res.json(products);
     } catch (error) {
       res.status(500).json({ error: 'Failed to get products' });

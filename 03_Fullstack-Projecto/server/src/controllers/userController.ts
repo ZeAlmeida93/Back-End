@@ -30,19 +30,20 @@ class UserController {
   }
   register = async (req: Request, res: Response) => {
     try {
-const errors = validationResult(req);
-const avatar = req.files?.avatar;
+      const errors = validationResult(req);
+      const avatar = req.files?.avatarFile;
+      console.log(avatar);
+      if (!errors.isEmpty()) {
 
-if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
 
-return res.status(422).json ({errors:errors.array()});
-
-}
+      }
 
       const userToCreate: IUser = req.body;
-      const createdUser: any = await userService.register(userToCreate);
+      const createdUser: any = await userService.register(userToCreate , avatar);
       res.status(201).json(createdUser);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
@@ -66,7 +67,7 @@ return res.status(422).json ({errors:errors.array()});
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
-  
+
   update = async (req: Request, res: Response) => {
     try {
       const userId: string = req.params.id;
