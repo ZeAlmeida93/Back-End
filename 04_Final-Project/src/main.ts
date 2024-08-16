@@ -1,24 +1,38 @@
+
+
 import express from 'express';
+
 import dotenv from 'dotenv';
+
+import mongoose from 'mongoose';
 import movieRouter from './routers/movieRouter.js';
 import cors from 'cors';
+import fileUpload from 'express-fileupload';
 
 
 dotenv.config();
 
-const PORT = process.env.PORT || 7878;
-
+const PORT = process.env.PORT || 7989;
+console.log(PORT);
 const app = express();
+
+app.use(fileUpload());
+app.use(express.static('static'));
 
 app.use(cors({
    origin: '*'
 }))
 
 app.use(express.json());
-app.use('api', movieRouter)
+app.use('/api', movieRouter)
 
 const startApp = async () => {
   try {
+
+    mongoose.set('strictQuery', true);
+    await mongoose.connect(String(process.env.MONGO_URI));
+    console.log("Succssefully connected to DB");
+
     app.listen(PORT, () => {
       if (process.env.NODE_ENV === 'prod') {
         console.log(`server is running in production mode on port ${PORT}`);

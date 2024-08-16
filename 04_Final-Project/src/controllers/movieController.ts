@@ -1,6 +1,7 @@
 import { channel } from 'diagnostics_channel';
 import {Request, Response, NextFunction} from 'express';
 import IMovie from '../interfaces/movieInterface.js';
+import movieService from '../services/movieService.js';
 
 class MovieController {
     async getAll(req: Request, res: Response, next: NextFunction) {}
@@ -8,8 +9,9 @@ class MovieController {
     async create(req: Request, res: Response, next: NextFunction) {
         try {
             const {title, releaseDate, trailerLink, posterUrl, genres} = req.body;
+            const poster = req.files?.poster;
 
-            const newMovie = {
+            const movieData = {
                 title,
                 releaseDate, 
                 trailerLink,
@@ -18,12 +20,13 @@ class MovieController {
             }as IMovie;
 
 
-            const createdMovie = newMovie; 
+            const createdMovie = await movieService.create(movieData, poster);
 
             res.status(201).json(createdMovie);
 
         }catch (err) {
             console.log(err);
+            res.status(500).json(err)
         }
     }
     async update(req: Request, res: Response, next: NextFunction) {}
