@@ -1,33 +1,61 @@
-import { channel } from 'diagnostics_channel';
-import {Request, Response, NextFunction} from 'express';
 import IMovie from '../interfaces/movieInterface.js';
-import MovieModel from '../models/movieModel.js'
+import MovieModel from '../models/movieModel.js';
 import fileService from '../utils/fileService.js';
+import { UploadedFile } from 'express-fileupload';
 
 class MovieService {
-    async getAll() {}
-    async getOne() {}
-    async create(movieData: IMovie, poster: any) {
-        try {
+  async getAll() {
+    return MovieModel.find();
+  }
 
-            if (poster) {
-                const posterUrl = fileService.save(poster);
-                movieData.posterUrl = posterUrl;
-            }
+  async getOne(id: string) {
+    return MovieModel.findById(id);
+  }
 
-            const newMovie = new MovieModel(movieData);
-            return await newMovie.save();
-         
-            }catch (err) {
-
-                console.log(err);
-            }
+  async create(movieData: IMovie, poster?: UploadedFile) {
+    if (poster) {
+      const posterUrl = fileService.save(poster);
+      movieData.posterUrl = posterUrl;
     }
-    async update() {}
-    async delete() {}
+    const newMovie = new MovieModel(movieData);
+    return newMovie.save();
+  }
+
+  async update(id: string, movieData: Partial<IMovie>, poster?: UploadedFile) {
+    if (poster) {
+      const posterUrl = fileService.save(poster);
+      movieData.posterUrl = posterUrl;
+    }
+    return MovieModel.findByIdAndUpdate(id, movieData, { new: true });
+  }
+
+  async delete(id: string) {
+    const movie = await MovieModel.findByIdAndDelete(id);
+    if (movie && movie.posterUrl) {
+      fileService.delete(movie.posterUrl);
+    }
+    return movie;
+  }
+
+  async search(query: Record<string, string>) {
+    const filter: Record<string, unknown> = {};
+    if (query.year) {
+      const start = new Date(`${query.year}-01-01`);
+      const end = new Date(`${query.year}-12-31`);
+      filter.releaseDate = { $gte: start, $lte: end };
+    }
+    if (query.title) {
+      filter.title = { $regex: query.title, $options: 'i' };
+    }
+    if (query.genre) {
+      filter.genres = { $in: [query.genre] };
+    }
+    const sort: Record<string, 1 | -1> = {};
+    if (query.sortBy === 'releaseDate') {
+      sort.releaseDate = 1;
+    }
+    return MovieModel.find(filter).sort(sort as any);
+  }
 }
 
-
-
 export default new MovieService();
-
